@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>虚拟麦克风测试台</title>
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+<body>
+  <header>
+    <div><span class="tag">VIRTUAL MIC LAB</span><h1>对方究竟会听到什么？</h1><p>分别检查云端克隆译音和虚拟麦克风回录。</p></div>
+    <div class="header-tools"><div class="header-state"><i id="serviceDot"></i><span id="serviceState">正在连接本地服务</span></div><button id="shutdown" class="shutdown-btn">关闭测试台</button></div>
+  </header>
+
+  <main>
+    <section class="hero-grid">
+      <article class="flow-card">
+        <span class="step">01</span><b>物理麦克风</b><small>16 kHz PCM16</small>
+      </article><span class="arrow">→</span>
+      <article class="flow-card cloud"><span class="step">02</span><b>阿里云翻译＋克隆</b><small>24 kHz PCM16</small></article><span class="arrow">→</span>
+      <article class="flow-card"><span class="step">03</span><b>CABLE Input</b><small>程序写入</small></article><span class="arrow">→</span>
+      <article class="flow-card accent"><span class="step">04</span><b>CABLE Output</b><small>会议麦克风＋本地回录</small></article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><div><span class="eyebrow">CONFIGURATION</span><h2>设备与阈值</h2></div><div class="actions"><button id="refreshDevices" class="ghost">刷新设备</button><button id="saveConfig">保存配置</button><button id="validate" class="primary">校验链路</button></div></div>
+      <div class="config-grid">
+        <label><span>物理麦克风</span><select id="microphone"><option value="">正在读取</option></select><em><input type="checkbox" id="microphoneDefault"> 使用 Windows 默认麦克风</em></label>
+        <label><span>虚拟播放设备（写入）</span><select id="virtualPlayback"><option value="CABLE Input">CABLE Input</option></select><small>通常是 CABLE Input。</small></label>
+        <label><span>虚拟录音设备（会议麦克风）</span><select id="virtualRecording"><option value="CABLE Output">CABLE Output</option></select><small>通常是 CABLE Output。</small></label>
+        <label><span>有效声音阈值</span><input id="threshold" type="number" min="-90" max="-6" step="1"><small>dBFS，默认 -48。</small></label>
+        <label><span>云端测试最长时间</span><input id="maxDuration" type="number" min="5" max="300"><small>秒，到时自动停止。</small></label>
+      </div>
+      <div class="config-meta"><span id="cloudConfig">云端配置：读取中</span><span id="configPath"></span></div>
+      <div id="validationResult" class="result neutral">请先校验设备链路。</div>
+    </section>
+
+    <section class="test-grid">
+      <article class="panel test-card">
+        <span class="eyebrow">LOCAL ROUTE TEST</span><h2>虚拟声卡路由测试</h2>
+        <p>写入短促校准音，再从虚拟麦克风回录。不调用阿里云。</p>
+        <button id="routeTest" class="primary large">开始路由测试</button>
+        <div class="metric-row"><span>是否录到信号</span><b id="routeDetected">—</b></div>
+        <div class="metric-row"><span>虚拟声卡延迟</span><b id="routeLatency">—</b></div>
+        <div class="metric-row"><span>回录峰值</span><b id="routePeak">—</b></div>
+      </article>
+
+      <article class="panel test-card dark">
+        <span class="eyebrow">REAL CLOUD TEST</span><h2>克隆译音推流测试</h2>
+        <p>开始后直接说话。云端每返回一块克隆译音，就立即写入 CABLE Input；不需要等到停止。停止仅用于结束会话并封装对照录音。</p>
+        <div class="actions"><button id="cloudStart" class="lime large">开始实时说话与推流</button><button id="cloudStop" class="danger large" disabled>停止实时测试</button></div>
+        <div class="stream-strip"><i id="streamDot"></i><div><small>实时推流状态</small><b id="streamState">尚未开始</b></div><span id="streamBytes">0 KB</span></div>
+        <div class="live-text"><small>原文</small><p id="sourceText">等待说话…</p><small>译文</small><p id="translationText">等待翻译…</p></div>
+        <div class="metric-row"><span>① 麦克风说话 → 云端首块克隆音</span><b id="cloudLatency">等待语音</b></div>
+        <div class="metric-row"><span>② 云端首块克隆音 → 写入 CABLE Input</span><b id="cableLatency">等待云端音频</b></div>
+        <div class="metric-row"><span>③ 麦克风说话 → 写入 CABLE Input 总延迟</span><b id="totalLatency">等待语音</b></div>
+        <div class="metric-row secondary"><span>CABLE Output 回录验证</span><b id="cableReturnState">等待推流</b></div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><div><span class="eyebrow">WHAT THEY HEAR</span><h2>录音对比与试听</h2></div><button id="refreshRecordings" class="ghost">刷新录音</button></div>
+      <div class="legend"><span><i class="cloud-dot"></i>`cloud_clone` = 云端返回</span><span><i class="cable-dot"></i>`virtual_mic` = 对方理论听到</span><span><i></i>`route_test` = 虚拟声卡校准</span></div>
+      <div id="recordings" class="recordings"><div class="empty">暂无录音。</div></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><div><span class="eyebrow">STATE TRACE</span><h2>状态与错误</h2></div><span id="runState" class="pill">IDLE</span></div>
+      <div id="events" class="events"><div class="empty">等待测试事件…</div></div>
+    </section>
+  </main>
+  <div id="toast" class="toast"></div>
+  <script src="/assets/app.js" defer></script>
+</body>
+</html>

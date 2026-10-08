@@ -1,0 +1,36 @@
+schema_version: 1
+aliyun:
+  api_key: ''
+  workspace_id: YOUR_WORKSPACE_ID
+  region: cn-beijing
+  request_timeout_seconds: 90
+service:
+  enrollment_model: qwen-voice-enrollment
+  target_model: qwen3.5-livetranslate-flash-realtime
+  preferred_name: meeting_voice
+audio:
+  file: ../../data/voice-clone/recordings/voice_sample.wav
+  url: ''
+  mime_type: auto
+  text: 大家好，这是我的声音复刻样本。我会用自然、清晰而稳定的语速，完成会议沟通和实时翻译。今天的天气很舒适，希望我们的交流准确、顺畅，也富有温度。
+  language: zh
+  max_encoded_bytes: 10000000
+  validate_wav_metadata: true
+listing:
+  page_index: 0
+  page_size: 10
+output:
+  format: table
+  show_request_id: true
+recording:
+  prompt: 大家好，这是我的声音复刻样本。我会用自然、清晰而稳定的语速，完成会议沟通和实时翻译。今天的天气很舒适，希望我们的交流准确、顺畅，也富有温度。
+translation_test:
+  voice_id: YOUR_VOICE_ID
+  input_file: ../../data/voice-clone/recordings/voice_sample.wav
+  output_file: ../../data/voice-clone/outputs/translated_en_clone.wav
+  source_language: zh
+  target_language: en
+  chunk_ms: 100
+  realtime_pacing: true
+  configure_timeout_seconds: 15
+  finish_timeout_seconds: 60

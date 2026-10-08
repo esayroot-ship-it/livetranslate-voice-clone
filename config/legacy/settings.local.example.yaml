@@ -1,0 +1,67 @@
+schema_version: 1
+app:
+  mode: full_duplex
+  language_preset: local_zh_remote_en
+aliyun:
+  api_key: ''
+  region: cn-beijing
+  workspace_id: YOUR_WORKSPACE_ID
+  model: qwen3.5-livetranslate-flash-realtime
+  connect_timeout_seconds: 10
+  configure_timeout_seconds: 10
+  finish_timeout_seconds: 15
+  max_message_bytes: 2097152
+voice:
+  voice_id: YOUR_VOICE_ID
+  clone_frequency: never
+web:
+  host: 127.0.0.1
+  port: 8765
+  open_browser: true
+subtitle:
+  show_source: true
+  show_translation: true
+  font_size_px: 28
+  max_segments: 50
+audio:
+  microphone:
+    host_api: WASAPI
+    name: ''
+    use_default: true
+  remote_playback:
+    host_api: WASAPI
+    name: ''
+    use_default: true
+  virtual_output:
+    enabled: false
+    host_api: WASAPI
+    name: CABLE Input
+    use_default: false
+  input_sample_rate_hz: 16000
+  output_sample_rate_hz: 24000
+  chunk_ms: 100
+  silence_dbfs: -48.0
+  silence_report_after_ms: 3000
+vad:
+  type: server_vad
+  threshold: 0.2
+  silence_duration_ms: 500
+queues:
+  input_chunks: 20
+  output_buffer_ms: 3000
+reconnect:
+  delays_seconds:
+  - 1
+  - 2
+  - 4
+  - 8
+  - 15
+terminology:
+  zh_to_en: terminology/zh_to_en.json
+  en_to_zh: terminology/en_to_zh.json
+  max_file_bytes: 262144
+logging:
+  level: INFO
+  directory: ../../data/legacy/logs
+  max_files: 5
+  max_bytes_per_file: 5242880

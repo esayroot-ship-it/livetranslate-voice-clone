@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>同声传译 · 音频设备</title>
+  <link rel="stylesheet" href="/assets/app.css">
+  <link rel="stylesheet" href="/assets/audio.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">译</div><h1>AI 会议同声传译</h1><p>正式版控制台 · V1.0</p></div>
+      <nav class="nav">
+        <a href="index.html">⌂ 总览</a><a href="config.html">⌘ 接口与翻译</a>
+        <a href="audio.html">◉ 音频设备</a><a href="subtitles.html">▤ 字幕</a>
+        <a href="voices.html">♬ 音色管理</a><a href="test.html">◇ 测试实验室</a>
+        <a href="status.html">↯ 后台状态</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div><h2>音频设备与麦克风传输</h2><p>选择物理设备，校准输入电平，并调整实时推流、VAD 与虚拟麦克风参数。</p></div>
+        <span class="pill"><i id="service-dot" class="dot"></i><span id="service-text">检测中</span></span>
+      </header>
+
+      <form id="form">
+        <section class="grid two">
+          <article class="card">
+            <h3>系统媒体捕获</h3>
+            <p class="hint">捕获选定物理播放端点上的全部声音，会议期间建议使用耳机。</p>
+            <label class="check"><input type="checkbox" data-path="audio.remote_playback.use_default">跟随默认播放设备</label>
+            <div class="field field-gap"><label>物理播放设备 / 回环源</label><select data-path="audio.remote_playback.name" id="remote-device"></select></div>
+            <div class="actions field-gap"><button id="probe" type="button" class="btn">播放视频并检测电平</button></div>
+            <div id="probe-result" class="notice info result-box">尚未检测系统媒体</div>
+          </article>
+
+          <article class="card microphone-card">
+            <h3>本地麦克风捕获</h3>
+            <p class="hint">校准过程仅在内存中统计电平，不上传、不保存录音。开始后先安静 1 秒，再正常讲话。</p>
+            <label class="check"><input type="checkbox" data-path="audio.microphone.use_default">跟随系统默认麦克风</label>
+            <div class="field field-gap"><label>物理麦克风</label><select data-path="audio.microphone.name" id="mic-device"></select></div>
+            <div class="actions field-gap"><button id="probe-mic" type="button" class="btn primary">4 秒麦克风校准</button></div>
+            <div id="mic-probe-result" class="calibration-result" aria-live="polite">
+              <div><span>环境底噪</span><b id="mic-noise">—</b></div>
+              <div><span>讲话峰值</span><b id="mic-peak">—</b></div>
+              <div><span>估算信噪比</span><b id="mic-snr">—</b></div>
+              <div><span>建议噪声门</span><b id="mic-gate-suggest">—</b></div>
+              <div><span>校准结论</span><b id="mic-quality">—</b></div>
+            </div>
+            <button id="use-gate-suggest" type="button" class="text-button" disabled>采用建议噪声门阈值</button>
+          </article>
+
+          <article class="card">
+            <h3>虚拟麦克风输出</h3>
+            <p class="hint">云端 24 kHz 克隆译音写入 CABLE Input；会议软件选择 CABLE Output。</p>
+            <label class="check"><input type="checkbox" data-path="audio.virtual_output_enabled">启用虚拟麦克风输出</label>
+            <div class="field field-gap"><label>写入设备（播放端）</label><select data-path="audio.virtual_output.name" id="cable-input"></select></div>
+            <div class="field field-gap-small"><label>回录设备（录音端）</label><select data-path="audio.virtual_recording.name" id="cable-output"></select></div>
+          </article>
+
+          <article class="card route-summary">
+            <h3>当前传输预算</h3>
+            <p class="hint">根据页面中的参数实时计算，不代表云端模型耗时。</p>
+            <div class="summary-grid">
+              <div><span>输入分块</span><b id="summary-chunk">—</b></div>
+              <div><span>输入容错容量（非固定延迟）</span><b id="summary-input-queue">—</b></div>
+              <div><span>断句等待</span><b id="summary-vad">—</b></div>
+              <div><span>输出积压上限</span><b id="summary-output-buffer">—</b></div>
+            </div>
+            <div id="parameter-warning" class="profile-note">加载配置后显示参数建议。</div>
+          </article>
+        </section>
+
+        <div class="section-heading">
+          <div><h3 class="section-title">一键推荐配置</h3><p>点击后立即保存；正式程序或测试运行时不能修改。</p></div>
+          <span id="active-profile" class="tag">自定义配置</span>
+        </div>
+        <section class="preset-grid">
+          <article class="preset-card" data-profile-card="clear">
+            <span class="preset-kicker">清晰优先</span><h3>完整语句优先</h3>
+            <p>80 ms 分块、保守 VAD、关闭噪声门，优先避免句首、轻声和字尾被截断。</p>
+            <button type="button" class="btn preset-apply" data-preset="clear">应用并保存</button>
+          </article>
+          <article class="preset-card recommended" data-profile-card="balanced">
+            <span class="preset-kicker">推荐</span><h3>平衡模式</h3>
+            <p>60 ms 分块、默认 VAD、关闭噪声门，兼顾首响速度和语句完整度。</p>
+            <button type="button" class="btn preset-apply" data-preset="balanced">应用并保存</button>
+          </article>
+          <article class="preset-card" data-profile-card="low_latency">
+            <span class="preset-kicker">低延迟</span><h3>首响优先</h3>
+            <p>50 ms 分块和 400 ms 断句，但保留足够输入与译音缓冲，避免用丢字换低延迟。</p>
+            <button type="button" class="btn preset-apply" data-preset="low_latency">应用并保存</button>
+          </article>
+        </section>
+        <div class="notice info preset-guidance">三个推荐预设都默认关闭应用内噪声门，并保持至少 4 秒译音 RingBuffer。RingBuffer 是最大容错容量，不是固定播放延迟；缩小它会在云端突发返回音频时丢弃旧 PCM，表现为克隆声音吞字。</div>
+
+        <div class="section-heading manual-heading">
+          <div><h3 class="section-title">手动参数</h3><p>数字增益和噪声门只处理本地麦克风，不影响远端媒体回环。</p></div>
+        </div>
+        <section class="grid two">
+          <article class="card">
+            <h3>麦克风电平与抗干扰</h3>
+            <div class="form-grid">
+              <div class="field">
+                <label>应用内数字增益（dB）</label>
+                <input data-path="audio.microphone_gain_db" data-type="number" type="number" min="-12" max="12" step="0.5">
+                <small>只改变发送给 AI 的音量；不会修改 Windows 系统音量。建议优先调整物理麦克风距离。</small>
+              </div>
+              <div class="field">
+                <label>活动显示阈值（dBFS）</label>
+                <input data-path="audio.silence_dbfs" data-type="number" type="number" min="-90" max="-6" step="1">
+                <small>用于状态和校准判断，不负责过滤音频。</small>
+              </div>
+              <label class="check full"><input type="checkbox" data-path="audio.microphone_noise_gate_enabled">启用本地麦克风噪声门</label>
+              <label class="check full"><input type="checkbox" data-path="microphone.push_to_talk_enabled">启用按住说话保护：松开时只发送静音，避免远处人声触发翻译</label>
+              <div class="field">
+                <label>噪声门阈值（dBFS）</label>
+                <input data-path="audio.microphone_noise_gate_dbfs" data-type="number" type="number" min="-80" max="-20" step="1">
+                <small>低于阈值且超过保持时间后发送静音帧。</small>
+              </div>
+              <div class="field">
+                <label>噪声门保持（ms）</label>
+                <input data-path="audio.microphone_noise_gate_hold_ms" data-type="number" type="number" min="50" max="2000" step="50">
+                <small>防止字尾和短停顿被突然切断。</small>
+              </div>
+              <div class="field full">
+                <label>持续静音报告（ms）</label>
+                <input data-path="audio.silence_report_after_ms" data-type="number" type="number" min="500" max="30000" step="100">
+              </div>
+            </div>
+            <div class="notice info parameter-note">五米外的人声和你的轻声都属于“语音”，普通噪声门无法可靠区分。信噪比较低时优先使用按住说话，并把耳麦麦克风放到嘴边 3-8 厘米。</div>
+          </article>
+
+          <article class="card">
+            <h3>推流、VAD 与队列</h3>
+            <div class="form-grid">
+              <div class="field"><label>输入采样率</label><input value="16000 Hz · PCM16 单声道" readonly></div>
+              <div class="field"><label>输出采样率</label><input data-path="audio.output_sample_rate_hz" data-type="number" readonly></div>
+              <div class="field">
+                <label>输入/输出分块（ms）</label>
+                <input data-path="audio.chunk_ms" data-type="number" type="number" min="20" max="200" step="10">
+                <small>越小首块等待越短，但 WebSocket、CPU 和播放调度次数越多。</small>
+              </div>
+              <div class="field">
+                <label>服务端 VAD 阈值</label>
+                <input data-path="vad.threshold" data-type="number" type="number" min="-1" max="1" step="0.05">
+                <small>越高越抗微弱噪声，也越可能漏掉轻声。</small>
+              </div>
+              <div class="field">
+                <label>静音断句（ms）</label>
+                <input data-path="vad.silence_duration_ms" data-type="number" type="number" min="200" max="6000" step="50">
+                <small>越短结束越快，过短会切碎自然停顿。</small>
+              </div>
+              <div class="field">
+                <label>输入队列（块）</label>
+                <input data-path="queues.input_chunks" data-type="number" type="number" min="5" max="100">
+                <small>满时丢弃最旧音频；较小值限制断网积压。</small>
+              </div>
+              <div class="field full">
+                <label>输出 RingBuffer 容量（ms）</label>
+                <input data-path="queues.output_buffer_ms" data-type="number" type="number" min="500" max="15000" step="100">
+                <small>这是最大积压容量，不是固定预缓冲；过大可能让拥塞后的旧译音持续太久。</small>
+              </div>
+              <label class="check full"><input type="checkbox" data-path="audio.target_language_guard_enabled">启用英文目标语言保护：确认译文出现英文后才放行对应克隆音频</label>
+            </div>
+            <div class="notice info parameter-note">当目标语言为英文时，语言保护会短暂缓存每句开头的克隆音频；若最终译文仍以中文为主，则丢弃该句音频并记录状态，避免中文译音进入 CABLE Input。</div>
+          </article>
+        </section>
+
+        <div class="notice route-warning">不要把远端媒体播放到 CABLE Input，否则译音可能再次进入远端 ASR 形成反馈。只有克隆译音走 VB-CABLE，会议原声走耳机或独立扬声器。</div>
+        <section class="card language-route-check">
+          <h3>防止中文原声直接发给对方</h3>
+          <div class="route-check-grid">
+            <div><span>云端语言方向</span><b id="local-language-route">检查中</b><small>麦克风源语言必须明确为 zh，目标语言为 en。</small></div>
+            <div><span>目标语言保护</span><b id="language-guard-state">检查中</b><small>疑似中文克隆音不会写入 CABLE Input。</small></div>
+            <div><span>会议软件麦克风</span><b class="manual-check">必须人工确认</b><small>只选择 CABLE Output，不能选择物理麦克风或“默认设备”。</small></div>
+            <div><span>OBS / 录屏混音</span><b class="manual-check">必须人工确认</b><small>关闭物理麦克风轨，只保留 CABLE Output；否则中文原声会绕过本应用。</small></div>
+          </div>
+          <div class="notice info route-diagnosis">本应用内部不会把物理麦克风直接写入 VB-CABLE。若语言保护没有报告拦截，但对方仍听到中文，优先检查会议软件自动切换输入设备、OBS 混入物理麦克风或 Windows“侦听此设备”。</div>
+        </section>
+        <div class="actions page-actions">
+          <button id="save" type="button" class="btn primary">保存自定义参数</button>
+          <button id="reload" type="button" class="btn ghost">恢复已保存值</button>
+          <button id="refresh" type="button" class="btn ghost">重新枚举设备</button>
+          <button id="validate" type="button" class="btn ghost">保存并解析设备</button>
+        </div>
+      </form>
+      <div id="toast" class="toast"></div>
+    </main>
+  </div>
+  <script src="/assets/common.js"></script>
+  <script src="/assets/audio.js"></script>
+</body>
+</html>

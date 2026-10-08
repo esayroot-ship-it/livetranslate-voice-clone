@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>同声传译 · 接口配置</title>
+  <link rel="stylesheet" href="/assets/app.css">
+  <link rel="stylesheet" href="/assets/config.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">译</div><h1>AI 会议同声传译</h1><p>正式版控制台 · V1.0</p></div>
+      <nav class="nav">
+        <a href="index.html">⌂ 总览</a><a href="config.html">⌘ 接口与翻译</a>
+        <a href="audio.html">◉ 音频设备</a><a href="subtitles.html">▤ 字幕</a>
+        <a href="voices.html">♬ 音色管理</a><a href="test.html">◇ 测试实验室</a>
+        <a href="status.html">↯ 后台状态</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div><h2>接口与翻译配置</h2><p>配置百炼工作空间、语言、服务端 VAD、同语跳过和热词。</p></div>
+        <span class="pill"><i id="service-dot" class="dot"></i><span id="service-text">检测中</span></span>
+      </header>
+
+      <form id="form">
+        <section class="card">
+          <h3>阿里云百炼</h3>
+          <p class="hint">API Key 单独写入 settings.local.yaml；页面不会回显密钥。</p>
+          <div class="form-grid">
+            <div class="field full"><label>API Key</label><input data-path="aliyun.api_key" type="password" autocomplete="new-password" placeholder="留空保持当前密钥"><small id="key-state">正在检查密钥状态</small></div>
+            <div class="field"><label>Workspace ID</label><input data-path="aliyun.workspace_id" placeholder="业务空间 ID"></div>
+            <div class="field"><label>区域</label><select data-path="aliyun.region"><option value="cn-beijing">中国内地（北京）</option><option value="ap-southeast-1">国际（新加坡）</option></select></div>
+            <div class="field"><label>LiveTranslate 模型</label><input data-path="aliyun.model" readonly></div>
+            <div class="field"><label>ASR 模型</label><input data-path="sessions.transcription_model" readonly></div>
+          </div>
+        </section>
+
+        <h3 class="section-title">语言与输出</h3>
+        <section class="grid two">
+          <article class="card">
+            <h3>远端媒体 → 本地字幕</h3><p class="hint">WebSocket #1 固定 modalities=["text"]。</p>
+            <div class="form-grid">
+              <div class="field"><label>源语言</label><select data-path="sessions.remote.source_language" data-languages data-auto="true"></select></div>
+              <div class="field"><label>字幕目标语言</label><select data-path="sessions.remote.target_language" data-languages></select></div>
+              <label class="check"><input type="checkbox" data-path="sessions.remote.same_language_skip_text">同语言时跳过文本</label>
+              <label class="check"><input type="checkbox" data-path="sessions.remote.same_language_skip_audio">同语言时跳过音频</label>
+            </div>
+          </article>
+          <article class="card">
+            <h3>本地麦克风 → 克隆译音</h3><p class="hint">同传模式固定 modalities=["text","audio"]。</p>
+            <div class="form-grid">
+              <div class="field"><label>源语言</label><select data-path="sessions.local.source_language" data-languages data-auto="true"></select></div>
+              <div class="field"><label>目标语言</label><select data-path="sessions.local.target_language" data-languages></select></div>
+              <label class="check"><input type="checkbox" data-path="sessions.local.same_language_skip_text">同语言时跳过文本</label>
+              <label class="check"><input type="checkbox" data-path="sessions.local.same_language_skip_audio">同语言时跳过音频</label>
+            </div>
+          </article>
+        </section>
+
+        <h3 class="section-title">语音活动与热词</h3>
+        <section class="grid two">
+          <article class="card">
+            <h3>服务端 VAD</h3>
+            <div class="form-grid">
+              <div class="field"><label>检测类型</label><input data-path="vad.type" readonly></div>
+              <div class="field"><label>阈值（-1 到 1）</label><input data-path="vad.threshold" data-type="number" type="number" min="-1" max="1" step="0.05"></div>
+              <div class="field full"><label>静音断句（200-6000 ms）</label><input data-path="vad.silence_duration_ms" data-type="number" type="number" min="200" max="6000"></div>
+            </div>
+            <div class="notice info" style="margin-top:14px">连续会议模式使用 server_vad。手动 commit 模式未开放，避免漏提交导致长时间无结果。</div>
+          </article>
+          <article class="card">
+            <h3>音色复刻策略</h3>
+            <div class="form-grid">
+              <label class="check full"><input type="checkbox" data-path="voice.enable_voice_clone">同传模式启用声音复刻</label>
+              <div class="field full"><label>复刻频率</label><select data-path="voice.clone_frequency"><option value="never">never · 使用固定 voice_id</option><option value="once">once · 会话首次复刻</option><option value="always">always · 持续复刻</option></select></div>
+            </div>
+            <div class="notice" style="margin-top:14px">正式会议推荐 never，并从“音色管理”页面选择已创建且获授权的固定音色。</div>
+          </article>
+          <article class="card">
+            <h3>远端热词 / 术语</h3><p class="hint">JSON 对象，键是原词，值是目标译法。</p>
+            <div class="field"><textarea data-path="hotwords.remote" data-type="json" spellcheck="false">{}</textarea></div>
+          </article>
+          <article class="card">
+            <h3>本地热词 / 术语</h3><p class="hint">最多 200 项，保存时校验键值类型。</p>
+            <div class="field"><textarea data-path="hotwords.local" data-type="json" spellcheck="false">{}</textarea></div>
+          </article>
+        </section>
+
+        <div id="config-save-state" class="notice info config-save-state" data-state="loading">正在读取已保存配置…</div>
+        <div class="actions config-actions">
+          <button id="save" type="button" class="btn primary">保存配置</button>
+          <button id="check" type="button" class="btn ghost">保存并校验</button>
+          <label class="check"><input id="clear-key" type="checkbox">同时清除已保存的 API Key</label>
+        </div>
+      </form>
+      <div id="toast" class="toast"></div>
+    </main>
+  </div>
+  <script src="/assets/common.js"></script>
+  <script src="/assets/config.js"></script>
+</body>
+</html>

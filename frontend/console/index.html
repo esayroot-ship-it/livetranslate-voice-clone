@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>同声传译 · 总览</title>
+  <link rel="stylesheet" href="/assets/app.css">
+  <link rel="stylesheet" href="/assets/dashboard.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">译</div>
+        <h1>AI 会议同声传译</h1>
+        <p>正式版控制台 · V1.0</p>
+      </div>
+      <nav class="nav">
+        <a href="index.html">⌂ 总览</a>
+        <a href="config.html">⌘ 接口与翻译</a>
+        <a href="audio.html">◉ 音频设备</a>
+        <a href="subtitles.html">▤ 字幕</a>
+        <a href="voices.html">♬ 音色管理</a>
+        <a href="test.html">◇ 测试实验室</a>
+        <a href="status.html">↯ 后台状态</a>
+      </nav>
+      <div class="side-foot">仅限本机访问 · 音频不落盘</div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h2>会议控制中心</h2>
+          <p>选择运行模式，检查链路，然后开始会议。</p>
+        </div>
+        <div class="top-actions">
+          <span class="pill"><i id="service-dot" class="dot"></i><span id="service-text">检测中</span></span>
+        </div>
+      </header>
+
+      <section class="grid two">
+        <article class="card hero">
+          <h3>运行模式</h3>
+          <p class="hint">切换模式会保存配置，但运行期间不可修改。</p>
+          <div class="mode-switch">
+            <div class="mode-option" data-mode="subtitle_only">
+              <strong>远端字幕</strong><span>系统媒体 → 本地翻译字幕</span>
+            </div>
+            <div class="mode-option" data-mode="microphone_subtitle">
+              <strong>麦克风字幕</strong><span>演讲、录屏或视频录制</span>
+            </div>
+            <div class="mode-option" data-mode="full_interpretation">
+              <strong>会议同传</strong><span>远端字幕 + 麦克风克隆译音</span>
+            </div>
+          </div>
+          <div class="mode-explanation">
+            <b id="mode-explanation-title">远端字幕是什么？</b>
+            <span id="mode-explanation-text">电脑里正在播放的会议、视频或网页声音会被识别并翻译成字幕，不会使用你的麦克风。</span>
+          </div>
+          <div id="meeting-subtitle-options" class="meeting-subtitle-options">
+            <b>会议字幕显示哪一方？</b>
+            <div class="subtitle-source-switch" role="group" aria-label="会议字幕显示来源">
+              <button type="button" data-subtitle-source="remote">仅显示对方</button>
+              <button type="button" data-subtitle-source="local">仅显示自己</button>
+              <button type="button" data-subtitle-source="both">同时显示双方</button>
+            </div>
+            <small>这里只改变字幕显示，不影响双方音频采集、翻译或克隆声音输出。</small>
+          </div>
+          <div id="microphone-options" class="microphone-options">
+            <label class="check"><input id="microphone-translate" type="checkbox">输出麦克风翻译字幕</label>
+            <label class="check"><input id="microphone-clone" type="checkbox">同时输出克隆声音到虚拟麦克风</label>
+            <small>关闭翻译时只显示识别原文，并需在“接口与翻译”中明确选择麦克风源语言；启用克隆声音会自动启用翻译。</small>
+          </div>
+          <div id="ptt-panel" class="ptt-panel">
+            <label class="check"><input id="ptt-enabled" type="checkbox">启用按住说话保护</label>
+            <div class="ptt-shortcut-row">
+              <span>当前快捷键：<b id="ptt-shortcut-value">Ctrl+Space</b></span>
+              <button id="ptt-record-shortcut" type="button">自定义快捷键</button>
+            </div>
+            <button id="ptt-hold" type="button" class="ptt-hold" disabled>启动程序后按住说话</button>
+            <small>快捷键只在总览网页具有焦点时生效；松开、页面失焦或心跳中断后立即静音。</small>
+          </div>
+          <div class="actions">
+            <button id="start" class="btn accent">启动程序</button>
+            <button id="stop" class="btn ghost">停止程序</button>
+            <button id="validate" class="btn ghost">启动前检查</button>
+          </div>
+        </article>
+
+        <article class="card">
+          <h3>实时字幕</h3>
+          <p class="hint">按“字幕”页面选择的来源显示远端、麦克风或双路内容。</p>
+          <div class="subtitle-box dashboard-subtitles">
+            <div id="remote-subtitle-panel" class="subtitle-channel" data-channel="remote">
+              <div class="channel-label">对方 / 系统媒体</div>
+              <div id="remote-source" class="source">等待系统媒体声音…</div>
+              <div id="remote-translation" class="translation">远端翻译将在这里显示</div>
+            </div>
+            <div id="local-subtitle-panel" class="subtitle-channel" data-channel="local">
+              <div class="channel-label">我 / 本地麦克风</div>
+              <div id="local-source" class="source">等待麦克风声音…</div>
+              <div id="local-translation" class="translation">麦克风翻译将在这里显示</div>
+            </div>
+          </div>
+          <div class="actions subtitle-actions">
+            <button id="overlay-open" class="btn">打开悬浮窗</button>
+            <button id="overlay-close" class="btn ghost">关闭悬浮窗</button>
+          </div>
+        </article>
+      </section>
+
+      <h3 class="section-title">链路状态</h3>
+      <section class="grid three">
+        <article class="card status-card"><span class="label">远端媒体捕获</span><div id="remote-capture" class="value">待机</div><div id="remote-capture-note" class="mini">WASAPI 回环</div></article>
+        <article class="card status-card"><span class="label">远端字幕连接</span><div id="remote-cloud" class="value">待机</div><div id="remote-cloud-note" class="mini">WebSocket #1 · text</div></article>
+        <article class="card status-card"><span class="label">本地同传连接</span><div id="local-cloud" class="value">未启用</div><div id="local-cloud-note" class="mini">WebSocket #2 · text + audio</div></article>
+        <article class="card status-card"><span class="label">本地麦克风</span><div id="local-capture" class="value">未启用</div><div class="mini">16 kHz PCM16</div></article>
+        <article class="card status-card"><span class="label">虚拟麦克风输出</span><div id="virtual-output" class="value">未启用</div><div class="mini">24 kHz → CABLE Input</div></article>
+        <article class="card status-card"><span class="label">输出给会议软件</span><div id="meeting-route" class="value">CABLE Output</div><div class="mini">请在 Teams/腾讯会议中选择</div></article>
+      </section>
+
+      <div class="section-heading">
+        <h3 class="section-title">实时链路延迟</h3>
+        <span>显示最近一次有效语音 · “—” 表示尚未采样</span>
+      </div>
+      <section class="grid latency-grid" aria-label="实时链路延迟">
+        <article class="card latency-card"><span>远端捕获 → 服务端 VAD</span><b id="latency-remote-capture-vad">—</b><small>客户端检测到媒体语音至云端起句</small></article>
+        <article class="card latency-card featured"><span>服务端 VAD → 中文字幕</span><b id="latency-remote-subtitle">—</b><small>远端字幕首字到达</small></article>
+        <article class="card latency-card"><span>麦克风捕获 → 服务端 VAD</span><b id="latency-local-capture-vad">—</b><small>客户端检测到人声至云端起句</small></article>
+        <article class="card latency-card"><span>服务端 VAD → 本地译文</span><b id="latency-local-translation">—</b><small>麦克风译文首字到达</small></article>
+        <article class="card latency-card featured"><span>服务端 VAD → 克隆音首块</span><b id="latency-local-audio">—</b><small>云端首块 PCM 音频到达</small></article>
+        <article class="card latency-card"><span>克隆音首块 → CABLE Input</span><b id="latency-audio-cable">—</b><small>首块音频到达至写入虚拟设备</small></article>
+        <article class="card latency-card total"><span>服务端 VAD → CABLE Input</span><b id="latency-local-cable">—</b><small>同传译音链路总延迟</small></article>
+      </section>
+      <p class="latency-footnote">以上为应用进程内单次实时测量，不包含会议软件从 CABLE Output 采集后的网络播放延迟；完整回录请在“测试实验室”执行。</p>
+
+      <div id="toast" class="toast"></div>
+    </main>
+  </div>
+  <script src="/assets/common.js"></script>
+  <script src="/assets/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bailian-livetranslate-voice-clone-cli"
+version = "0.1.0"
+description = "阿里云百炼 Qwen3.5 LiveTranslate 固定音色管理 CLI"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+  "imageio-ffmpeg>=0.6,<1",
+  "PyYAML>=6.0,<7",
+  "requests>=2.32,<3",
+  "websockets>=14,<17",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8,<10",
+  "ruff>=0.9,<1",
+]
+
+[project.scripts]
+voice-clone = "bailian_voice_clone.cli:main"
+voice-translate-test = "bailian_voice_clone.translate_test:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

@@ -1,0 +1,26 @@
+.config-save-state {
+  margin-top: 20px;
+  transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.config-save-state[data-state="warn"] {
+  border-left-color: #e4ac3c;
+  background: #fff8e8;
+  color: #71470f;
+}
+
+.config-save-state[data-state="good"] {
+  border-left-color: #20a46b;
+  background: #eaf8f1;
+  color: #185e42;
+}
+
+.config-save-state[data-state="bad"] {
+  border-left-color: var(--bad);
+  background: #fff0ef;
+  color: #8d241c;
+}
+
+.config-actions {
+  margin-top: 14px;
+}

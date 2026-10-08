@@ -1,0 +1,5 @@
+config/settings.local.yaml
+runtime/logs/
+runtime/test_audio/
+runtime/test-settings.yaml
+__pycache__/

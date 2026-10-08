@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>同声传译 · 字幕</title>
+  <link rel="stylesheet" href="/assets/app.css">
+  <link rel="stylesheet" href="/assets/subtitles.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">译</div><h1>AI 会议同声传译</h1><p>正式版控制台 · V1.0</p></div>
+      <nav class="nav">
+        <a href="index.html">⌂ 总览</a><a href="config.html">⌘ 接口与翻译</a>
+        <a href="audio.html">◉ 音频设备</a><a href="subtitles.html">▤ 字幕</a>
+        <a href="voices.html">♬ 音色管理</a><a href="test.html">◇ 测试实验室</a>
+        <a href="status.html">↯ 后台状态</a>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <div><h2>字幕来源与悬浮窗</h2><p>选择远端、麦克风或双路字幕，并分别控制原文、译文和来源标签。</p></div>
+        <span class="pill"><i id="service-dot" class="dot"></i><span id="service-text">检测中</span></span>
+      </header>
+
+      <section class="grid two">
+        <form id="form" class="card">
+          <h3>内容来源</h3>
+          <p class="hint">来源控制总览和悬浮窗显示；运行模式决定实际采集哪些声音。</p>
+          <div class="source-picker">
+            <label><input type="radio" name="source-mode" value="remote"><span><b>远端字幕</b><small>系统媒体或会议对方</small></span></label>
+            <label><input type="radio" name="source-mode" value="local"><span><b>麦克风字幕</b><small>自己的演讲或录屏</small></span></label>
+            <label><input type="radio" name="source-mode" value="both"><span><b>双路字幕</b><small>同时显示对方和我</small></span></label>
+          </div>
+          <input id="source-mode-value" data-path="subtitle.source_mode" type="hidden">
+          <div class="notice info meeting-source-note">会议同传模式也可以只显示“远端字幕”或只显示“麦克风字幕”；运行模式不会覆盖这里的选择。</div>
+
+          <h3 class="settings-title">原文与译文</h3>
+          <div class="form-grid">
+            <label class="check"><input type="checkbox" data-path="subtitle.show_source">显示识别原文</label>
+            <label class="check"><input type="checkbox" data-path="subtitle.show_translation">显示翻译结果</label>
+            <label class="check full"><input type="checkbox" data-path="subtitle.show_channel_labels">显示“对方 / 我”来源标签</label>
+            <div class="field"><label>译文字号（18-48 px）</label><input data-path="subtitle.font_size_px" data-type="number" id="font-size" type="number" min="18" max="48"></div>
+            <div class="field"><label>原文字号（10-32 px）</label><input data-path="subtitle.source_font_size_px" data-type="number" id="source-font-size" type="number" min="10" max="32"></div>
+            <div class="field"><label>最大字幕段数</label><input data-path="subtitle.max_segments" data-type="number" type="number" min="10" max="200"></div>
+            <div class="field"><label>译文颜色</label><input data-path="subtitle.font_color" id="font-color" type="color"></div>
+            <div class="field"><label>原文颜色</label><input data-path="subtitle.source_font_color" id="source-font-color" type="color"></div>
+            <div class="field"><label>来源标签颜色</label><input data-path="subtitle.channel_label_color" id="label-color" type="color"></div>
+          </div>
+
+          <h3 class="layout-title">背景与占用面积</h3>
+          <div class="form-grid">
+            <label class="check full"><input type="checkbox" data-path="subtitle.compact_background">紧凑背景，减少黑色区域高度</label>
+            <div class="field"><label>背景颜色</label><input data-path="subtitle.background_color" id="bg-color" type="color"></div>
+            <div class="field"><label>背景透明度（5%-100%）</label><input data-path="subtitle.background_opacity" data-type="number" id="opacity" type="range" min="0.05" max="1" step="0.05"><small id="opacity-value"></small></div>
+            <div class="field"><label>窗口宽度（屏幕百分比）</label><input data-path="subtitle.window_width_percent" data-type="number" id="window-width" type="range" min="40" max="100" step="1"><small id="width-value"></small></div>
+            <div class="field"><label>左右内边距（0-60 px）</label><input data-path="subtitle.horizontal_padding_px" data-type="number" id="horizontal-padding" type="number" min="0" max="60"></div>
+            <div class="field"><label>上下内边距（0-40 px）</label><input data-path="subtitle.vertical_padding_px" data-type="number" id="vertical-padding" type="number" min="0" max="40"></div>
+            <div class="field"><label>默认位置</label><select data-path="subtitle.position"><option value="bottom">屏幕底部</option><option value="top">屏幕顶部</option></select></div>
+          </div>
+          <div class="notice info subtitle-note">关闭麦克风翻译后，“麦克风字幕”只显示识别原文；远端翻译设置不受影响。</div>
+          <div class="actions subtitle-actions">
+            <button id="save" type="button" class="btn primary">保存字幕设置</button>
+            <button id="open" type="button" class="btn">打开悬浮窗</button>
+            <button id="close" type="button" class="btn ghost">关闭悬浮窗</button>
+          </div>
+        </form>
+
+        <article class="card">
+          <h3>样式与来源预览</h3>
+          <p class="hint">悬浮窗始终置顶，可拖动，右键或按 Esc 关闭。</p>
+          <div id="preview" class="subtitle-box subtitle-preview">
+            <section id="preview-remote" class="preview-channel">
+              <div class="preview-label">对方 / 系统媒体</div>
+              <div class="source">We will review the quarterly results today.</div>
+              <div class="translation">今天我们将审阅本季度的业绩。</div>
+            </section>
+            <section id="preview-local" class="preview-channel">
+              <div class="preview-label">我 / 本地麦克风</div>
+              <div class="source">今天我将介绍本季度的工作成果。</div>
+              <div class="translation">Today I will present our quarterly results.</div>
+            </section>
+          </div>
+          <div class="contrast-grid">
+            <div><span>译文 / 背景对比度</span><b id="translation-contrast">—</b></div>
+            <div><span>原文 / 背景对比度</span><b id="source-contrast">—</b></div>
+            <div><span>来源标签 / 背景对比度</span><b id="label-contrast">—</b></div>
+          </div>
+          <p class="contrast-help">建议正文对比度至少 4.5:1；背景透明时，真实对比度还会受到视频画面影响。</p>
+          <div id="source-explanation" class="notice info preview-note"></div>
+        </article>
+      </section>
+      <div id="toast" class="toast"></div>
+    </main>
+  </div>
+  <script src="/assets/common.js"></script>
+  <script src="/assets/subtitles.js"></script>
+</body>
+</html>

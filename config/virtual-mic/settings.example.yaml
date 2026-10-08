@@ -1,0 +1,29 @@
+schema_version: 1
+interpreter_config: ../legacy/settings.local.yaml
+web:
+  host: 127.0.0.1
+  port: 8776
+  open_browser: true
+devices:
+  microphone:
+    host_api: WASAPI
+    name: ''
+    use_default: true
+  virtual_playback:
+    host_api: WASAPI
+    name: CABLE Input
+    use_default: false
+  virtual_recording:
+    host_api: WASAPI
+    name: CABLE Output
+    use_default: false
+audio:
+  signal_threshold_dbfs: -48.0
+  route_tone_hz: 1000
+  route_tone_seconds: 1.0
+  route_record_tail_ms: 800
+  cloud_max_duration_seconds: 30
+  output_buffer_ms: 5000
+outputs:
+  directory: ../../data/virtual-mic
+  max_recordings: 20

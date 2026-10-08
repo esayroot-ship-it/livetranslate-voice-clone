@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-meeting-interpreter"
+version = "0.1.0"
+description = "Windows AI 会议同声传译本地 Web 客户端"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "numpy>=2.0,<3",
+  "PyAudioWPatch>=0.2.12.8,<0.3",
+  "PyYAML>=6.0,<7",
+  "requests>=2.32,<3",
+  "soxr>=0.5,<1",
+  "uvicorn[standard]>=0.34,<1",
+  "websockets>=14,<17",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8,<10",
+  "pytest-asyncio>=0.24,<2",
+  "ruff>=0.9,<1",
+]
+build = ["pyinstaller>=6.12,<7"]
+voice = ["imageio-ffmpeg>=0.6,<1"]
+
+[project.scripts]
+ai-interpreter = "ai_interpreter.app:main"
+
+[tool.setuptools]
+package-dir = {"" = "backend/src"}
+
+[tool.setuptools.packages.find]
+where = ["backend/src"]
+
+[tool.setuptools.package-data]
+ai_interpreter = ["web/static/*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["backend/src", "backend", "backend/voice_clone/src"]
+testpaths = ["tests", "backend/virtual_mic_test/tests", "backend/formal_app/tests", "backend/voice_clone/tests"]
+addopts = "-q"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["backend/src", "backend", "backend/voice_clone/src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

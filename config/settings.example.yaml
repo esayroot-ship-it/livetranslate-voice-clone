@@ -1,0 +1,119 @@
+schema_version: 1
+app:
+  mode: subtitle_only
+  auto_open_overlay: true
+microphone:
+  translate_enabled: true
+  clone_audio_enabled: false
+  push_to_talk_enabled: false
+  push_to_talk_shortcut: Ctrl+Space
+aliyun:
+  region: cn-beijing
+  workspace_id: ''
+  model: qwen3.5-livetranslate-flash-realtime
+  connect_timeout_seconds: 10
+  configure_timeout_seconds: 10
+  finish_timeout_seconds: 15
+  max_message_bytes: 2097152
+sessions:
+  input_sample_rate_hz: 16000
+  input_audio_format: pcm
+  output_audio_format: pcm
+  transcription_model: qwen3-asr-flash-realtime
+  remote:
+    source_language: auto
+    target_language: zh
+    same_language_skip_text: false
+    same_language_skip_audio: true
+  local:
+    source_language: zh
+    target_language: en
+    same_language_skip_text: false
+    same_language_skip_audio: true
+voice:
+  voice_id: ''
+  enable_voice_clone: true
+  clone_frequency: never
+  enrollment_model: qwen-voice-enrollment
+  preferred_name: meeting_voice
+  request_timeout_seconds: 90
+  page_size: 10
+  recording_prompt: 你好，这是我的声音复刻测试。我会用自然、清晰、稳定的语速读完这段文字。
+audio:
+  microphone:
+    host_api: WASAPI
+    name: ''
+    use_default: true
+  remote_playback:
+    host_api: WASAPI
+    name: ''
+    use_default: true
+  virtual_output:
+    host_api: WASAPI
+    name: CABLE Input
+    use_default: false
+  virtual_recording:
+    host_api: WASAPI
+    name: CABLE Output
+    use_default: false
+  virtual_output_enabled: true
+  output_sample_rate_hz: 24000
+  chunk_ms: 100
+  microphone_gain_db: 0.0
+  microphone_noise_gate_enabled: false
+  microphone_noise_gate_dbfs: -52.0
+  microphone_noise_gate_hold_ms: 300
+  target_language_guard_enabled: true
+  silence_dbfs: -48.0
+  silence_report_after_ms: 3000
+vad:
+  type: server_vad
+  threshold: 0.2
+  silence_duration_ms: 500
+queues:
+  input_chunks: 20
+  output_buffer_ms: 5000
+reconnect:
+  delays_seconds:
+  - 1
+  - 2
+  - 4
+  - 8
+  - 15
+hotwords:
+  remote: {}
+  local: {}
+subtitle:
+  source_mode: remote
+  show_source: true
+  show_translation: true
+  show_channel_labels: true
+  compact_background: true
+  window_width_percent: 72
+  horizontal_padding_px: 16
+  vertical_padding_px: 8
+  source_font_size_px: 16
+  source_font_color: '#c7d2cc'
+  channel_label_color: '#ddef7e'
+  font_size_px: 30
+  max_segments: 80
+  font_color: '#ffffff'
+  background_color: '#111827'
+  background_opacity: 0.86
+  position: bottom
+test:
+  signal_threshold_dbfs: -48.0
+  route_tone_hz: 1000
+  route_tone_seconds: 1.0
+  route_record_tail_ms: 800
+  cloud_max_duration_seconds: 60
+  max_recordings: 20
+web:
+  host: 127.0.0.1
+  port: 8788
+  open_browser: true
+logging:
+  level: INFO
+  directory: ../data/runtime/logs
+  max_files: 7
+  max_bytes_per_file: 5242880

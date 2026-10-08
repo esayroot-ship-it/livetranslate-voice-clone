@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+*.egg-info/
+build/
+dist/
+config/voice_clone.local.yaml
+*.mp4
+recordings/*.wav
+recordings/*.mp3
+recordings/*.m4a
+!recordings/README.md
+outputs/*.wav
+outputs/*.json
+!outputs/README.md

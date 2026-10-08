@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>AI 会议同声传译 · 本地控制台</title>
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div><strong>INTERPRET</strong><small>LOCAL CONSOLE · V1</small></div>
+      </div>
+      <nav aria-label="页面导航">
+        <a class="nav-item active" href="#live"><span>01</span>双路同传</a>
+        <a class="nav-item" href="#capture"><span>02</span>音频捕获</a>
+        <a class="nav-item" href="#cloud"><span>03</span>音频推流</a>
+        <a class="nav-item" href="#devices"><span>04</span>物理设备</a>
+        <a class="nav-item" href="#subtitle"><span>05</span>字幕设置</a>
+        <a class="nav-item" href="#diagnostics"><span>06</span>状态诊断</a>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="privacy-dot"></div>
+        <div><strong>仅本机访问</strong><small>127.0.0.1 · 测试录音仅存本机</small></div>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">AI MEETING INTERPRETER</p>
+          <h1>实时翻译控制台</h1>
+        </div>
+        <div class="top-actions">
+          <div class="connection-pill" id="browserState"><i></i><span>正在连接本地服务</span></div>
+          <button class="btn ghost" id="saveTop">保存配置</button>
+          <button class="btn primary" id="startTop">开始同传</button>
+        </div>
+      </header>
+
+      <section class="hero section" id="live">
+        <div class="hero-copy">
+          <div class="stage-tag">DUAL WEBSOCKET · LIVE TRANSLATE</div>
+          <h2>对方说的话，<br><em>看中文。</em></h2>
+          <p>远端通道捕获选定播放设备的 WASAPI 整机回环，生成中文悬浮字幕；本地通道捕获物理麦克风，翻译后使用固定克隆音色输出。</p>
+          <div class="hero-controls">
+            <button class="btn primary large" id="startHero"><span class="record-dot"></span>开始双路同传</button>
+            <button class="btn danger large" id="stopHero" disabled>停止会话</button>
+            <button class="btn secondary large" id="openOverlay">打开置顶中文字幕</button>
+            <button class="btn ghost large" id="closeOverlay">关闭悬浮字幕</button>
+          </div>
+          <div class="pipeline-inline" aria-label="双路同传处理流程">
+            <span>媒体回环 → 中文字幕</span><b>∥</b><span>物理麦克风 → 英文克隆译音</span>
+          </div>
+        </div>
+        <div class="live-panel">
+          <div class="panel-head">
+            <div><span class="live-indicator"></span><strong>字幕监看</strong></div>
+            <span class="mono" id="sessionClock">00:00:00</span>
+          </div>
+          <div class="subtitle-stage" id="subtitleStage">
+            <div class="speaker-label">对方 / 媒体声 · 原文</div>
+            <p class="source-line" id="remoteSourceLine">等待选定播放设备的声音。</p>
+            <div class="separator"></div>
+            <div class="speaker-label accent">远端中文字幕</div>
+            <p class="translation-line" id="remoteTranslationLine">中文翻译将在这里显示。</p>
+            <div class="local-preview"><strong>本地麦克风</strong><span id="sourceLine">等待本地原文…</span><em id="translationLine">等待克隆译音文本…</em></div>
+          </div>
+          <div class="level-row">
+            <span>INPUT</span>
+            <div class="meter"><div id="inputMeter"></div></div>
+            <strong class="mono" id="dbfsValue">— dBFS</strong>
+          </div>
+          <div class="mini-status-grid">
+            <div><span>捕获</span><strong id="captureSummary">未启动</strong></div>
+            <div><span>云端</span><strong id="cloudSummary">未连接</strong></div>
+            <div><span>VAD</span><strong id="vadSummary">待机</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="notice" id="notice" role="status" aria-live="polite">
+        <strong>首次使用提示</strong>
+        <span>先在下方填写 Workspace ID 与 API Key，再刷新并选择物理麦克风。密钥保存于本地配置文件，页面不会回读明文。</span>
+        <button aria-label="关闭提示" id="closeNotice">×</button>
+      </div>
+
+      <section class="section config-section" id="capture">
+        <div class="section-heading">
+          <div><p class="eyebrow">02 · AUDIO CAPTURE</p><h2>音频捕获</h2></div>
+          <div class="section-status neutral" id="captureBadge">等待配置</div>
+        </div>
+        <div class="card-grid two">
+          <article class="card feature-card">
+            <div class="card-index">A</div>
+            <div class="card-title"><h3>物理麦克风</h3><span>WASAPI INPUT</span></div>
+            <label class="field full">
+              <span>捕获设备</span>
+              <select id="microphoneName"><option value="">尚未读取设备</option></select>
+              <small>只列出具有输入通道的物理/录音设备。</small>
+            </label>
+            <label class="check-line">
+              <input type="checkbox" id="microphoneDefault">
+              <span><strong>跟随 Windows 默认麦克风</strong><small>默认设备发生变化时，下次启动会重新解析。</small></span>
+            </label>
+            <div class="action-row">
+              <button class="btn secondary" id="refreshDevices">刷新设备列表</button>
+              <span class="inline-result" id="deviceResult">未检测</span>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-title"><h3>采集与转换</h3><span>STREAM FORMAT</span></div>
+            <div class="spec-row"><span>云端输入格式</span><strong>PCM16 · MONO</strong></div>
+            <div class="spec-row"><span>目标采样率</span><strong>16,000 Hz</strong></div>
+            <label class="field">
+              <span>音频块时长</span>
+              <div class="input-suffix"><input id="chunkMs" type="number" min="20" max="500"><b>ms</b></div>
+            </label>
+            <label class="field">
+              <span>静音判断阈值</span>
+              <div class="input-suffix"><input id="silenceDbfs" type="number" min="-90" max="-10" step="1"><b>dBFS</b></div>
+            </label>
+            <label class="field">
+              <span>持续静音报告</span>
+              <div class="input-suffix"><input id="silenceReportMs" type="number" min="500" max="30000" step="100"><b>ms</b></div>
+            </label>
+          </article>
+        </div>
+        <article class="microphone-test-card" aria-labelledby="microphoneTestTitle">
+          <div class="microphone-test-copy">
+            <p class="eyebrow">MIC → TRANSLATE → CLONED VOICE</p>
+            <h3 id="microphoneTestTitle">麦克风翻译与克隆音频测试</h3>
+            <p>只启动本地麦克风 WebSocket。对着麦克风说话，停止后可直接试听阿里云返回的翻译克隆音频；不会启动远端媒体捕获。</p>
+            <div class="test-controls">
+              <label class="field compact-field"><span>最长测试时间</span><div class="input-suffix"><input id="microphoneTestDuration" type="number" min="5" max="60" value="20"><b>秒</b></div></label>
+              <button class="btn primary large" id="startMicrophoneTest"><span class="record-dot"></span>开始麦克风测试</button>
+              <button class="btn danger large" id="stopMicrophoneTest" disabled>停止并生成音频</button>
+            </div>
+          </div>
+          <div class="microphone-test-result">
+            <div class="test-result-head"><strong>测试返回</strong><span class="section-status neutral" id="microphoneTestState">IDLE</span></div>
+            <div class="test-text"><small>原文</small><p id="microphoneTestSource">等待开始测试…</p></div>
+            <div class="test-text translated"><small>译文</small><p id="microphoneTestTranslation">等待翻译…</p></div>
+            <audio id="microphoneTestAudio" controls preload="metadata" hidden></audio>
+            <div class="test-hint" id="microphoneTestHint">测试结束后，克隆音频播放器会显示在这里。</div>
+          </div>
+        </article>
+      </section>
+
+      <section class="section config-section dark-section" id="cloud">
+        <div class="section-heading inverse">
+          <div><p class="eyebrow">03 · CLOUD STREAM</p><h2>阿里云推流</h2></div>
+          <div class="section-status dark" id="cloudBadge">未验证</div>
+        </div>
+        <div class="cloud-layout">
+          <article class="cloud-form">
+            <div class="form-grid">
+              <label class="field"><span>地域</span><select id="region"><option value="cn-beijing">华北 2（北京）</option><option value="ap-southeast-1">新加坡</option></select></label>
+              <label class="field"><span>业务空间 ID</span><input id="workspaceId" autocomplete="off" placeholder="填写 Workspace ID"></label>
+              <label class="field full"><span>API Key</span><div class="secret-field"><input id="apiKey" type="password" autocomplete="new-password" placeholder="留空则保留已保存的密钥"><button type="button" id="toggleSecret">显示</button></div><small id="keyState">未配置</small></label>
+              <label class="field full"><span>模型</span><input id="model" value="qwen3.5-livetranslate-flash-realtime" readonly></label>
+              <label class="field"><span>运行模式</span><select id="mode"><option value="full_duplex">双路同传</option><option value="local_subtitle">仅本地麦克风字幕</option></select></label>
+              <label class="field"><span>本地说话语言</span><select id="languagePreset"><option value="local_zh_remote_en">中文 → 英文（对方英文 → 中文）</option><option value="local_en_remote_zh">英文 → 中文（对方中文 → 英文）</option></select></label>
+              <label class="field full"><span>LiveTranslate 固定克隆音色 voice_id</span><input id="voiceId" autocomplete="off" placeholder="qwen-translate-vc-..."></label>
+            </div>
+          </article>
+          <article class="vad-card">
+            <div class="card-title inverse"><h3>服务端 VAD</h3><span>AUTO TURN DETECTION</span></div>
+            <label class="range-field"><span><b>检测阈值</b><output id="vadThresholdOutput">0.2</output></span><input id="vadThreshold" type="range" min="-1" max="1" step="0.05"></label>
+            <label class="range-field"><span><b>句尾静音</b><output id="vadSilenceOutput">500 ms</output></span><input id="vadSilence" type="range" min="200" max="6000" step="100"></label>
+            <label class="field"><span>输入队列容量</span><div class="input-suffix"><input id="queueChunks" type="number" min="5" max="100"><b>chunks</b></div></label>
+            <div class="formula">队列缓冲时长 = 音频块时长 × 队列容量</div>
+            <div class="calculated"><span>当前最大缓冲</span><strong id="bufferDuration">2.0 秒</strong></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section config-section" id="devices">
+        <div class="section-heading">
+          <div><p class="eyebrow">04 · PHYSICAL DEVICES</p><h2>设备与后续路由</h2></div>
+          <button class="btn secondary" id="refreshDevicesTable">重新扫描</button>
+        </div>
+        <div class="future-routing">
+          <label class="field"><span>远端会议播放设备</span><select id="remotePlaybackName"><option value="">Windows 默认播放设备</option></select></label>
+          <label class="check-line compact"><input type="checkbox" id="remotePlaybackDefault"><span><strong>使用默认播放设备</strong></span></label>
+          <label class="field"><span>克隆译音输出设备</span><input id="virtualOutputName" value="CABLE Input"><small>写入 CABLE Input，会议软件麦克风选 CABLE Output。</small></label>
+          <label class="check-line compact"><input type="checkbox" id="virtualOutputEnabled"><span><strong>启用虚拟麦克风写入</strong><small>未安装驱动时保持关闭</small></span></label>
+          <div class="phase-lock"><button class="btn secondary" id="probeRemote">测试媒体捕获 2.5 秒</button><span id="probeRemoteResult">播放视频时点击，只统计电平，不保存音频。</span></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>设备</th><th>接口</th><th>输入</th><th>输出</th><th>默认采样率</th><th>类型</th></tr></thead>
+            <tbody id="deviceTable"><tr><td colspan="6" class="empty-cell">点击“重新扫描”读取本机设备</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section config-section" id="subtitle">
+        <div class="section-heading">
+          <div><p class="eyebrow">05 · LOCAL OVERLAY</p><h2>本地字幕设置</h2></div>
+          <span class="section-note">仅影响浏览器显示，不保存字幕正文</span>
+        </div>
+        <div class="card-grid three">
+          <article class="card option-card"><label class="switch-line"><span><strong>显示原文</strong><small>显示麦克风识别结果</small></span><input id="showSource" type="checkbox"><i></i></label></article>
+          <article class="card option-card"><label class="switch-line"><span><strong>显示翻译</strong><small>显示 confirmed + stash</small></span><input id="showTranslation" type="checkbox"><i></i></label></article>
+          <article class="card option-card"><label class="field"><span>字幕字号</span><div class="input-suffix"><input id="subtitleFontSize" type="number" min="18" max="48"><b>px</b></div></label></article>
+          <article class="card option-card"><label class="field"><span>历史条数上限</span><div class="input-suffix"><input id="subtitleMaxSegments" type="number" min="10" max="200"><b>条</b></div></label></article>
+          <article class="card history-card">
+            <div class="card-title"><h3>本次会话历史</h3><span>MEMORY ONLY</span></div>
+            <div id="historyCount">0 条最终字幕</div>
+            <button class="text-button" id="clearHistory">清空页面历史</button>
+          </article>
+        </div>
+        <div class="history-list" id="subtitleHistory"><div class="history-empty">最终字幕会按语句出现在这里，并在刷新页面或停止后清空。</div></div>
+      </section>
+
+      <section class="section config-section" id="diagnostics">
+        <div class="section-heading">
+          <div><p class="eyebrow">06 · STATE DIAGNOSTICS</p><h2>捕获与推流状态</h2></div>
+          <button class="btn ghost" id="clearEvents">清空事件</button>
+        </div>
+        <div class="state-board six">
+          <article class="state-column"><div class="state-head"><span class="state-number">01</span><div><h3>远端回环</h3><small>WASAPI LOOPBACK</small></div></div><strong id="remoteCaptureState">IDLE</strong><p id="remoteCaptureDetail">等待媒体声音</p></article>
+          <article class="state-column"><div class="state-head"><span class="state-number">02</span><div><h3>远端字幕</h3><small>WS #1 TEXT</small></div></div><strong id="remotePushState">IDLE</strong><p id="remotePushDetail">等待连接</p></article>
+          <article class="state-column"><div class="state-head"><span class="state-number">03</span><div><h3>本地麦克风</h3><small>WASAPI INPUT</small></div></div><strong id="captureState">IDLE</strong><p id="captureDetail">等待打开物理麦克风</p></article>
+          <article class="state-column"><div class="state-head"><span class="state-number">04</span><div><h3>本地译音</h3><small>WS #2 TEXT+AUDIO</small></div></div><strong id="pushState">IDLE</strong><p id="pushDetail">等待连接</p></article>
+          <article class="state-column"><div class="state-head"><span class="state-number">05</span><div><h3>克隆音输出</h3><small>24 KHZ PCM</small></div></div><strong id="outputState">IDLE</strong><p id="outputDetail">等待克隆译音</p></article>
+          <article class="state-column"><div class="state-head"><span class="state-number">06</span><div><h3>首响延迟</h3><small>SERVER VAD → FIRST</small></div></div><strong id="latencyState">—</strong><p id="latencyDetail">等待样本</p></article>
+        </div>
+        <div class="event-console">
+          <div class="console-head"><strong>事件时间线</strong><span>不会显示密钥、PCM 或完整协议载荷</span></div>
+          <div id="eventList"><div class="console-empty">等待状态事件…</div></div>
+        </div>
+      </section>
+
+      <footer>
+        <div><strong>AI INTERPRETER V1</strong><span>正式会话音频仅驻留内存 · 麦克风测试录音最多保留 10 份</span></div>
+        <div id="configPath">配置文件：读取中…</div>
+      </footer>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="alert"></div>
+  <script src="/assets/app.js" defer></script>
+</body>
+</html>

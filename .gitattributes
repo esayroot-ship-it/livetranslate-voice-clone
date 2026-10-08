@@ -1,0 +1,2 @@
+# Preserve the existing application source bytes on Windows.
+* -text
